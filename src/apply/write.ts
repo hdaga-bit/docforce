@@ -1,7 +1,7 @@
-import { writeFileSync, renameSync, unlinkSync, existsSync } from "node:fs";
+import { writeFileSync, unlinkSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { mkdirSync } from "node:fs";
 import type { ApplyTestHooks } from "./types.js";
+import { atomicReplaceFile } from "../path/fs.js";
 
 export function atomicWriteFile(
   absolutePath: string,
@@ -14,8 +14,8 @@ export function atomicWriteFile(
   mkdirSync(dirname(absolutePath), { recursive: true });
   const tmp = join(dirname(absolutePath), `.docforce-apply-${process.pid}-${Date.now()}.tmp`);
   try {
-    writeFileSync(tmp, content, "utf-8");
-    renameSync(tmp, absolutePath);
+    writeFileSync(tmp, content, { encoding: "utf-8" });
+    atomicReplaceFile(tmp, absolutePath);
   } catch (err) {
     try { if (existsSync(tmp)) unlinkSync(tmp); } catch { /* ignore */ }
     throw err;
@@ -23,5 +23,5 @@ export function atomicWriteFile(
 }
 
 export function restoreFile(absolutePath: string, original: string): void {
-  writeFileSync(absolutePath, original, "utf-8");
+  writeFileSync(absolutePath, original, { encoding: "utf-8" });
 }

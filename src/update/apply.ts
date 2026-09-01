@@ -1,6 +1,7 @@
-import { mkdirSync, writeFileSync, readFileSync, existsSync, unlinkSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { writeFileSync, readFileSync, existsSync, unlinkSync } from "node:fs";
+import { resolve } from "node:path";
 import type { StagedArtifact } from "./staging.js";
+import { writeGeneratedFile } from "../path/fs.js";
 
 export interface ApplyResult {
   readonly applied: readonly string[];
@@ -36,8 +37,7 @@ export function applyArtifacts(
   try {
     for (const s of toWrite) {
       const fullPath = resolve(repoRoot, s.path);
-      mkdirSync(dirname(fullPath), { recursive: true });
-      writeFileSync(fullPath, s.content, "utf-8");
+      writeGeneratedFile(fullPath, s.content);
       if (s.status === "would-create") {
         created.push(s.path);
       }

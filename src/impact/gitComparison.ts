@@ -1,27 +1,17 @@
-import { execSync } from "node:child_process";
-import type { FileChange, ChangeType } from "./types.js";
+import type { FileChange } from "./types.js";
+import { tryGit } from "../runtime/exec.js";
+import { toModelPath } from "../path/canonical.js";
 
 export function getChangedFiles(
   repoRoot: string,
   baseRef: string,
   headRef?: string,
 ): FileChange[] {
-  const cmd = headRef
-    ? `git diff --name-status ${baseRef}...${headRef}`
-    : `git diff --name-status ${baseRef}`;
+  const args = headRef
+    ? ["diff", "--name-status", `${baseRef}...${headRef}`]
+    : ["diff", "--name-status", baseRef];
 
-  let output: string;
-  try {
-    output = execSync(cmd, {
-      cwd: repoRoot,
-      encoding: "utf-8",
-      timeout: 30_000,
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
-  } catch {
-    return [];
-  }
-
+  const output = tryGit(args, { cwd: repoRoot, timeout: 30_000 });
   if (!output) return [];
 
   const changes: FileChange[] = [];
@@ -29,7 +19,7 @@ export function getChangedFiles(
     if (!line.trim()) continue;
     const parts = line.split("\t");
     const status = parts[0]!.trim();
-    const path = parts[1]?.trim() ?? "";
+    const path = toModelPath(parts[1]?.trim() ?? "");
 
     if (status === "A") {
       changes.push({ path, changeType: "added" });
@@ -39,7 +29,7 @@ export function getChangedFiles(
       changes.push({ path, changeType: "modified" });
     } else if (status.startsWith("R")) {
       const oldPath = path;
-      const newPath = parts[2]?.trim() ?? path;
+      const newPath = toModelPath(parts[2]?.trim() ?? path);
       changes.push({ path: newPath, changeType: "renamed", oldPath });
     }
   }
@@ -48,14 +38,5 @@ export function getChangedFiles(
 }
 
 export function resolveRef(repoRoot: string, ref: string): string | null {
-  try {
-    return execSync(`git rev-parse --short ${ref}`, {
-      cwd: repoRoot,
-      encoding: "utf-8",
-      timeout: 5_000,
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
-  } catch {
-    return null;
-  }
+  return tryGit(["rev-parse", "--short", ref], { cwd: repoRoot, timeout: 5_000 });
 }

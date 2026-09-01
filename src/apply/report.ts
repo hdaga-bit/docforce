@@ -1,26 +1,23 @@
-import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ApprovalRecord, ProposalApplicationReport } from "./types.js";
 import { DOCFORCE_VERSION } from "../version.js";
+import { writeGeneratedFile } from "../path/fs.js";
 
 export function writeApplicationReports(
   report: ProposalApplicationReport,
   repoRoot: string,
 ): { jsonPath: string; mdPath: string } {
   const reportsDir = join(repoRoot, ".docforce", "reports");
-  mkdirSync(reportsDir, { recursive: true });
   const jsonPath = join(reportsDir, "proposal-application.json");
   const mdPath = join(reportsDir, "proposal-application.md");
-  writeFileSync(jsonPath, JSON.stringify(report, null, 2), "utf-8");
-  writeFileSync(mdPath, generateApplicationMarkdown(report), "utf-8");
+  writeGeneratedFile(jsonPath, JSON.stringify(report, null, 2));
+  writeGeneratedFile(mdPath, generateApplicationMarkdown(report));
   return { jsonPath, mdPath };
 }
 
 export function writeApprovalRecord(record: ApprovalRecord, repoRoot: string): string {
-  const dir = join(repoRoot, ".docforce", "approvals");
-  mkdirSync(dir, { recursive: true });
-  const path = join(dir, `${record.proposalId}.json`);
-  writeFileSync(path, JSON.stringify(record, null, 2), "utf-8");
+  const path = join(repoRoot, ".docforce", "approvals", `${record.proposalId}.json`);
+  writeGeneratedFile(path, JSON.stringify(record, null, 2));
   return path;
 }
 

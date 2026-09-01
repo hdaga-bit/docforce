@@ -1,6 +1,6 @@
-import { execSync } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import { basename, extname } from "node:path";
+import { tryGit } from "../runtime/exec.js";
 import type { ChangeImpactReport } from "../impact/types.js";
 import { classifyFile } from "../impact/fileClassifier.js";
 import type { SystemModel } from "../model/types.js";
@@ -238,17 +238,8 @@ function getDiff(repoRoot: string, baseRef: string, path: string, headRef?: stri
   const cleanBase = baseRef.replace(/\s*\([^)]*\)$/, "");
   const cleanHead = headRef?.replace(/\s*\([^)]*\)$/, "");
 
-  const cmd = cleanHead && cleanHead !== "WORKTREE"
-    ? `git diff ${cleanBase}...${cleanHead} -- "${path}"`
-    : `git diff ${cleanBase} -- "${path}"`;
-  try {
-    return execSync(cmd, {
-      cwd: repoRoot,
-      encoding: "utf-8",
-      timeout: 10_000,
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim() || null;
-  } catch {
-    return null;
-  }
+  const args = cleanHead && cleanHead !== "WORKTREE"
+    ? ["diff", `${cleanBase}...${cleanHead}`, "--", path]
+    : ["diff", cleanBase, "--", path];
+  return tryGit(args, { cwd: repoRoot, timeout: 10_000 });
 }

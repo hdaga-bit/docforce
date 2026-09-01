@@ -148,3 +148,17 @@ export {
 export type { DocforcePackageIdentity } from "./version.js";
 export { DEFAULT_PR_CONFIG } from "./config/index.js";
 export type { DocforcePrConfig, PrStatusOutcome } from "./config/types.js";
+export {
+  toModelPath,
+  toFilesystemPath,
+  isPathInsideRoot,
+  isPathWithinAllowedRoots,
+  toRepositoryRelativePath,
+} from "./path/canonical.js";
+export { canonicalizeNewlines, toGeneratedText, GENERATED_LINE_ENDING } from "./path/lineEnding.js";
+export {
+  resolveNpmCommand,
+  resolveNpmCliEntry,
+  resolveNodeCommand,
+  resolveInstalledCliEntry,
+} from "./runtime/exec.js";

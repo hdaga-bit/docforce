@@ -3,6 +3,7 @@ import type { WriterDraft, DocumentationDraftInput, AiDocumentationProposal } fr
 import type { AiReviewInput } from "../review/types.js";
 import { validateAiResponse } from "../review/responseValidator.js";
 import { isDeterministicOwnedPath, isPathWithinAllowedRoots } from "./ownership.js";
+import { isUnsafeDeclaredPath, toModelPath } from "../path/canonical.js";
 import type { DocforceConfig } from "../config/types.js";
 import { hashContent, isProposalStale } from "./sections.js";
 import { detectConflicts } from "../review/conflictDetector.js";
@@ -39,8 +40,8 @@ export function validateWriterDraft(
     errors.push("Proposed content must not include DocForce section markers");
   }
 
-  const targetPath = input.target.path.replace(/\\/g, "/");
-  if (targetPath.includes("..") || targetPath.startsWith("/") || targetPath.startsWith("~")) {
+  const targetPath = toModelPath(input.target.path);
+  if (isUnsafeDeclaredPath(targetPath) || targetPath.split("/").includes("..")) {
     errors.push(`Target path "${targetPath}" is unsafe`);
   }
   if (!isPathWithinAllowedRoots(repoRoot, targetPath, config.documentation.allowedRoots)) {

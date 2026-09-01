@@ -1,6 +1,6 @@
 # DocForce
 
-Standalone documentation analysis framework. Version **1.3.0**.
+Standalone documentation analysis framework. Version **1.3.1**.
 
 DocForce reads a consumer repository as filesystem and Git **data**. It builds a
 deterministic architecture model, regenerates owned documentation, optionally
@@ -36,11 +36,11 @@ v1.0 is **private**. It is not published to a public registry.
 
 See `INSTALL.md` for the consumer contract.
 
-v1.3.0 is consumed as a **packed tarball** (or, later, a private Git tag/SHA).
+v1.3.1 is consumed as a **packed tarball** (or, later, a private Git tag/SHA).
 A sibling `file:../docforce` path is not required.
 
 ```bash
-npm install ./vendor/docforce/mary-docforce-1.3.0.tgz
+npm install ./vendor/docforce/mary-docforce-1.3.1.tgz
 ```
 
 A git URL is acceptable once this repository has a remote. This tree currently
@@ -195,7 +195,7 @@ See `docs/COMPONENT_BOUNDARIES.md`, `docs/MODEL_SCHEMA_1.0.md`, and `docs/VIEW_M
 | Field | Value |
 |-------|--------|
 | Name | `@mary/docforce` |
-| Version | `1.3.0` |
+| Version | `1.3.1` |
 | Publish | private / local `file:` or git dependency |
 | Model schema | `1.0.0` (fingerprint-relevant; independent of package version) |
 

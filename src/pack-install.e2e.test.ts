@@ -1,40 +1,47 @@
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { DOCFORCE_VERSION } from "./version.js";
+import { removeTree } from "./path/fs.js";
+import {
+  resolveInstalledCliEntry,
+  runNodeScript,
+  runNpm,
+} from "./runtime/exec.js";
+import { toModelPath } from "./path/canonical.js";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-function run(command: string, args: string[], cwd: string): string {
-  return execFileSync(command, args, {
-    cwd,
-    encoding: "utf-8",
-    stdio: ["pipe", "pipe", "pipe"],
-    timeout: 120_000,
-    env: { ...process.env, npm_config_fund: "false" },
-  });
-}
-
+/**
+ * Pack-install invokes the consumer CLI as:
+ *   node <installed-package>/dist/cli.js <command>
+ *
+ * That avoids `node_modules/.bin/docforce` (a POSIX script) and
+ * `docforce.cmd` (Windows-only), and does not assume a sibling
+ * `../docforce` checkout.
+ */
 describe("Packaged install into an isolated consumer", () => {
   const work = mkdtempSync(join(tmpdir(), "docforce-consumer-"));
   const consumer = join(work, "app");
   let tarball = "";
+  let cliEntry = "";
 
   after(() => {
-    rmSync(work, { recursive: true, force: true });
+    removeTree(work);
     if (tarball && existsSync(tarball)) {
-      try { rmSync(tarball); } catch { /* ignore */ }
+      try { removeTree(tarball); } catch { /* ignore */ }
     }
   });
 
   it("installs from npm pack without a sibling ../docforce path", () => {
-    assert.ok(!work.startsWith("/opt/maryforce"), "fixture must live outside the MaryForce tree");
+    assert.ok(!toModelPath(work).includes("/opt/maryforce"), "fixture must live outside the MaryForce tree");
 
-    run("npm", ["pack"], packageRoot);
-    tarball = join(packageRoot, "mary-docforce-1.3.0.tgz");
+    const npmEnv = { ...process.env, npm_config_fund: "false" };
+    runNpm(["pack"], { cwd: packageRoot, env: npmEnv });
+    tarball = join(packageRoot, `mary-docforce-${DOCFORCE_VERSION}.tgz`);
     assert.ok(existsSync(tarball));
 
     mkdirSync(consumer, { recursive: true });
@@ -63,17 +70,18 @@ analysis:
     mkdirSync(join(consumer, "src", "app"), { recursive: true });
     writeFileSync(join(consumer, "src", "app", "index.ts"), "export function hello() { return \"ok\"; }\n");
 
-    run("npm", ["install", tarball], consumer);
+    runNpm(["install", tarball], { cwd: consumer, env: { ...process.env, npm_config_fund: "false" } });
     assert.ok(!existsSync(join(consumer, "..", "docforce", "package.json")));
-    assert.ok(existsSync(join(consumer, "node_modules", "@mary", "docforce", "package.json")));
-    assert.ok(existsSync(join(consumer, "node_modules", "@mary", "docforce", "dist", "cli.js")));
+    const installedRoot = join(consumer, "node_modules", "@mary", "docforce");
+    assert.ok(existsSync(join(installedRoot, "package.json")));
+    cliEntry = resolveInstalledCliEntry(installedRoot);
+    assert.ok(existsSync(cliEntry));
   });
 
   it("docforce analyze inspects the consumer repository, not the package", () => {
-    const bin = join(consumer, "node_modules", ".bin", "docforce");
-    const out = run(bin, ["analyze"], consumer);
+    const out = runNodeScript(cliEntry, ["analyze"], { cwd: consumer });
     assert.ok(out.includes(`Repository: ${consumer}`));
-    assert.match(out, /@mary\/docforce 1\.3\.0/);
+    assert.ok(out.includes(`@mary/docforce ${DOCFORCE_VERSION}`));
     assert.ok(!out.includes("/opt/maryforce/orchestrator"));
 
     const modelPath = join(consumer, ".docforce", "system-model.json");
@@ -86,13 +94,12 @@ analysis:
     assert.equal(model.product.name, "IsolatedConsumer");
     assert.ok(model.components.some((c) => c.id === "app"));
     assert.ok(!model.components.some((c) => c.id === "scanner" || c.id === "pr"));
-    assert.equal(model.metadata.docforceVersion, "1.3.0");
-    assert.ok(model.metadata.repositoryRoot.startsWith(consumer));
+    assert.equal(model.metadata.docforceVersion, DOCFORCE_VERSION);
+    assert.equal(resolve(model.metadata.repositoryRoot), resolve(consumer));
   });
 
   it("docforce generate writes consumer docs from the consumer model", () => {
-    const bin = join(consumer, "node_modules", ".bin", "docforce");
-    const out = run(bin, ["generate"], consumer);
+    const out = runNodeScript(cliEntry, ["generate"], { cwd: consumer });
     assert.ok(out.includes("docs/generated/technical-overview.md"));
     assert.ok(out.includes("docs/generated/technical-architecture.md"));
     const overview = readFileSync(join(consumer, "docs", "generated", "technical-overview.md"), "utf-8");

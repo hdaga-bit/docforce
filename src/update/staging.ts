@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { canonicalizeNewlines, toGeneratedText } from "../path/lineEnding.js";
 import type { SystemModel } from "../model/types.js";
 import type { DocforceConfig } from "../config/types.js";
 import type { ChangeImpactReport, DocumentImpact } from "../impact/types.js";
@@ -8,7 +9,7 @@ import type { ArtifactUpdate, ArtifactUpdateStatus } from "./types.js";
 import { ARTIFACT_REGISTRY } from "./artifactRegistry.js";
 
 function sha256(content: string): string {
-  return createHash("sha256").update(content, "utf-8").digest("hex");
+  return createHash("sha256").update(canonicalizeNewlines(content), "utf-8").digest("hex");
 }
 
 export interface StagedArtifact {
@@ -49,7 +50,7 @@ export function stageArtifacts(
       continue;
     }
 
-    const content = def.generate(model, config);
+    const content = toGeneratedText(def.generate(model, config));
     const newHash = sha256(content);
 
     const existingPath = resolve(repoRoot, def.getPath(config));

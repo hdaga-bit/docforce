@@ -1,3 +1,5 @@
+import { toModelPath } from "../path/canonical.js";
+
 export type FileCategory =
   | "source"
   | "test"
@@ -33,8 +35,9 @@ const CLASSIFICATION_RULES: { test: (path: string) => boolean; category: FileCat
 ];
 
 export function classifyFile(path: string): FileCategory {
+  const normalized = toModelPath(path);
   for (const rule of CLASSIFICATION_RULES) {
-    if (rule.test(path)) return rule.category;
+    if (rule.test(normalized)) return rule.category;
   }
   return "unknown";
 }

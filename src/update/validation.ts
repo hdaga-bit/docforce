@@ -1,6 +1,7 @@
-import { resolve, relative, normalize } from "node:path";
+import { resolve } from "node:path";
 import type { StagedArtifact } from "./staging.js";
 import { ARTIFACT_REGISTRY } from "./artifactRegistry.js";
+import { isPathInsideRoot } from "../path/canonical.js";
 
 export interface UpdateValidationResult {
   readonly valid: boolean;
@@ -24,8 +25,7 @@ export function validateStagedArtifacts(
     }
 
     const fullPath = resolve(repoRoot, s.path);
-    const relativePath = relative(repoRoot, fullPath);
-    if (relativePath.startsWith("..") || normalize(relativePath) !== relativePath.replace(/\\/g, "/")) {
+    if (!isPathInsideRoot(repoRoot, fullPath)) {
       errors.push(`Artifact "${s.artifact}" path "${s.path}" resolves outside repository root`);
     }
 

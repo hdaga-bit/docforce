@@ -1,6 +1,7 @@
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync, readdirSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, readFileSync, readdirSync } from "node:fs";
+import { removeTree } from "../path/fs.js";
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -40,7 +41,7 @@ function createFixtureRepo(): FixtureRepo {
     cleanup(): void {
       try {
         try { execSync("git worktree prune", { cwd: dir, stdio: "pipe" }); } catch { /* ignore */ }
-        rmSync(dir, { recursive: true, force: true });
+        removeTree(dir);
       } catch { /* ignore */ }
     },
   };

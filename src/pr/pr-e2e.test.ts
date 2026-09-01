@@ -1,7 +1,8 @@
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { removeTree } from "../path/fs.js";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { loadConfig, resolveConfigPath, DEFAULT_PR_CONFIG } from "../config/index.js";
@@ -18,6 +19,7 @@ import { UNTRUSTED_EVIDENCE_END, UNTRUSTED_EVIDENCE_START } from "../review/prom
 import type { ReasoningProvider, ReasoningProviderResult } from "../review/provider.js";
 import type { AiReviewInput } from "../review/types.js";
 import { assessPullRequest } from "./assess.js";
+import { runGit } from "../runtime/exec.js";
 import { runPullRequestCheck } from "./run.js";
 import { FailingReporter, RecordingReporter } from "./reporter.js";
 import { renderPrSummary } from "./summary.js";
@@ -55,7 +57,7 @@ function createFixtureRepo(label: string): FixtureRepo {
     cleanup(): void {
       try {
         try { execSync("git worktree prune", { cwd: dir, stdio: "pipe" }); } catch { /* ignore */ }
-        rmSync(dir, { recursive: true, force: true });
+        removeTree(dir);
       } catch { /* ignore */ }
     },
   };
@@ -732,9 +734,9 @@ describe("PR E2E: read-only guarantee", () => {
 
     const trackedAfter = execSync("git ls-files -s", { cwd: repo.dir, encoding: "utf-8", stdio: "pipe" });
     const headAfter = execSync("git rev-parse HEAD", { cwd: repo.dir, encoding: "utf-8", stdio: "pipe" }).trim();
-    const dirty = execSync("git status --porcelain -- . ':!.docforce'", {
-      cwd: repo.dir, encoding: "utf-8", stdio: "pipe",
-    }).trim();
+    const dirty = runGit(["status", "--porcelain", "--", ".", ":!.docforce"], {
+      cwd: repo.dir,
+    });
 
     assert.equal(trackedAfter, trackedBefore, "no tracked file content may change");
     assert.equal(headAfter, headBefore, "no commit may be created");

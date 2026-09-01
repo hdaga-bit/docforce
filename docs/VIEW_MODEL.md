@@ -1,6 +1,6 @@
 # Documentation View Model (DocForce v1.3)
 
-Package version `1.3.0`. System Model schema remains `1.0.0`.
+Package version `1.3.1`. System Model schema remains `1.0.0`.
 
 v1.3 composes a professional flagship Technical Architecture document from the
 validated System Model and Documentation View Model. It does not expand

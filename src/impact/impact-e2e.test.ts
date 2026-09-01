@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
-import { mkdirSync, writeFileSync, rmSync, existsSync, unlinkSync, renameSync, readFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, unlinkSync, renameSync, readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -10,6 +10,7 @@ import { compareModels } from "./modelDiff.js";
 import { classifyFile, classifyFileChanges, getProductRelevantChanges } from "./fileClassifier.js";
 import { validateImpactReport } from "./validation.js";
 import type { FileChange } from "./types.js";
+import { removeTree } from "../path/fs.js";
 
 // ========== FIXTURE HARNESS ==========
 
@@ -55,7 +56,7 @@ function createFixtureRepo(): FixtureRepo {
     cleanup(): void {
       try {
         try { execSync("git worktree prune", { cwd: dir, stdio: "pipe" }); } catch {}
-        rmSync(dir, { recursive: true, force: true });
+        removeTree(dir);
       } catch {}
     },
   };
@@ -303,7 +304,7 @@ describe("E2E Scenario F — Component removed", () => {
     repo.commit("initial: app + legacy");
     
     repo.removeFile("src/legacy/index.ts");
-    try { execSync(`rm -rf "${join(repo.dir, "src/legacy")}"`, { stdio: "pipe" }); } catch {}
+    try { removeTree(join(repo.dir, "src/legacy")); } catch {}
     repo.commit("remove: legacy component");
     
     const report = analyzeChangeImpact({ baseRef: "HEAD~1", headRef: "HEAD", repoRoot: repo.dir });

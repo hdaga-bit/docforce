@@ -1,6 +1,6 @@
 # Installing DocForce in a consumer repository
 
-v1.3.0 is private. It is not on a public npm registry.
+v1.3.1 is private. It is not on a public npm registry.
 
 ## What a consumer needs
 
@@ -16,7 +16,7 @@ runtime modules.
 
 ```bash
 # Pin a packed release that lives in the consumer repo
-npm install ./vendor/docforce/mary-docforce-1.3.0.tgz
+npm install ./vendor/docforce/mary-docforce-1.3.1.tgz
 
 # Or, once a private Git remote exists (do not invent one):
 # npm install git+ssh://git@<host>/<owner>/<repo>.git#v1.0.0

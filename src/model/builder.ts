@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { execSync } from "node:child_process";
+import { tryGit } from "../runtime/exec.js";
+import { canonicalizeNewlines } from "../path/lineEnding.js";
 import { basename } from "node:path";
 import type { DocforceConfig } from "../config/types.js";
 import { DOCFORCE_VERSION, MODEL_SCHEMA_VERSION } from "../version.js";
@@ -51,26 +52,13 @@ export interface ScanResults {
   coverage: DiscoveryCoverage;
 }
 
-function gitExec(cmd: string, cwd: string): string | null {
-  try {
-    return execSync(cmd, {
-      cwd,
-      encoding: "utf-8",
-      timeout: 5_000,
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim() || null;
-  } catch {
-    return null;
-  }
-}
-
 export function getGitInfo(repoRoot: string): GitInfo {
-  const commitSha = gitExec("git rev-parse HEAD", repoRoot);
-  const branch = gitExec("git rev-parse --abbrev-ref HEAD", repoRoot);
+  const commitSha = tryGit(["rev-parse", "HEAD"], { cwd: repoRoot, timeout: 5_000 });
+  const branch = tryGit(["rev-parse", "--abbrev-ref", "HEAD"], { cwd: repoRoot, timeout: 5_000 });
 
   let dirty: boolean | null = null;
   if (commitSha !== null) {
-    const status = gitExec("git status --porcelain", repoRoot);
+    const status = tryGit(["status", "--porcelain"], { cwd: repoRoot, timeout: 5_000 });
     dirty = status !== null ? status.length > 0 : null;
   }
 
@@ -80,7 +68,7 @@ export function getGitInfo(repoRoot: string): GitInfo {
 function computeConfigHash(configPath: string): string {
   try {
     const content = readFileSync(configPath, "utf-8");
-    return createHash("sha256").update(content).digest("hex").slice(0, 16);
+    return createHash("sha256").update(canonicalizeNewlines(content), "utf-8").digest("hex").slice(0, 16);
   } catch {
     return "unknown";
   }

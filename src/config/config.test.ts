@@ -1,7 +1,7 @@
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { writeFileSync, mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve, normalize } from "node:path";
 import { tmpdir } from "node:os";
 import { loadConfig, resolveConfigPath } from "./index.js";
 
@@ -101,9 +101,9 @@ product:
   });
 
   it("resolveConfigPath joins repo root and default filename", () => {
-    const result = resolveConfigPath("/some/repo");
-    assert.ok(result.endsWith("docforce.yml"));
-    assert.ok(result.startsWith("/some/repo"));
+    const repoRoot = resolve(tmpDir, "some", "repo");
+    const result = resolveConfigPath(repoRoot);
+    assert.equal(normalize(result), normalize(resolve(repoRoot, "docforce.yml")));
   });
 
   it("parses AI-assisted documentation targets", () => {

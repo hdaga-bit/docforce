@@ -1,11 +1,12 @@
-import { execSync } from "node:child_process";
-import { mkdirSync, rmSync, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { loadConfig, resolveConfigPath } from "../config/index.js";
 import { runAllScanners } from "../scanner/index.js";
 import { buildSystemModel } from "../model/builder.js";
 import type { SystemModel } from "../model/types.js";
+import { runGit } from "../runtime/exec.js";
+import { removeTree } from "../path/fs.js";
 
 export interface WorktreeResult {
   readonly model: SystemModel;
@@ -21,12 +22,7 @@ export function scanAtRef(
   ref: string,
 ): SystemModel {
   try {
-    execSync(`git rev-parse --verify ${ref}`, {
-      cwd: repoRoot,
-      encoding: "utf-8",
-      timeout: 5_000,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+    runGit(["rev-parse", "--verify", ref], { cwd: repoRoot, timeout: 5_000 });
   } catch {
     throw new Error(`Invalid Git ref: "${ref}". Cannot resolve to a commit.`);
   }
@@ -35,11 +31,9 @@ export function scanAtRef(
   let cleanupError: Error | null = null;
 
   try {
-    execSync(`git worktree add --detach "${worktreeDir}" ${ref}`, {
+    runGit(["worktree", "add", "--detach", worktreeDir, ref], {
       cwd: repoRoot,
-      encoding: "utf-8",
       timeout: 30_000,
-      stdio: ["pipe", "pipe", "pipe"],
     });
 
     const configPath = resolveConfigPath(worktreeDir);
@@ -56,13 +50,9 @@ export function scanAtRef(
   } finally {
     try {
       if (existsSync(worktreeDir)) {
-        rmSync(worktreeDir, { recursive: true, force: true });
+        removeTree(worktreeDir);
       }
-      execSync(`git worktree prune`, {
-        cwd: repoRoot,
-        timeout: 10_000,
-        stdio: ["pipe", "pipe", "pipe"],
-      });
+      runGit(["worktree", "prune"], { cwd: repoRoot, timeout: 10_000 });
     } catch (err) {
       cleanupError = err instanceof Error ? err : new Error(String(err));
       console.error(`Warning: worktree cleanup failed: ${cleanupError.message}`);

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { canonicalizeNewlines } from "../path/lineEnding.js";
 
 const OPEN = /<!--\s*docforce:ai-section\s+id="([^"]+)"\s*-->/g;
 const CLOSE = /<!--\s*\/docforce:ai-section\s*-->/g;
@@ -22,7 +23,7 @@ export interface SectionParseResult {
 }
 
 export function hashContent(content: string): string {
-  return createHash("sha256").update(content, "utf-8").digest("hex");
+  return createHash("sha256").update(canonicalizeNewlines(content), "utf-8").digest("hex");
 }
 
 export function parseManagedSections(markdown: string): SectionParseResult {

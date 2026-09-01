@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { StoredProposal } from "./types.js";
+import { toModelPath } from "../path/canonical.js";
 
 /**
  * Canonical SHA-256 over the proposal payload that will be applied, plus
@@ -14,7 +15,7 @@ export function computeProposalFingerprint(
 ): string {
   const canonical = {
     area: proposal.area,
-    targetPath: proposal.targetPath.replace(/\\/g, "/"),
+    targetPath: toModelPath(proposal.targetPath),
     sectionId: proposal.sectionId,
     operation: proposal.operation,
     proposedContent: proposal.proposedContent,
@@ -24,7 +25,7 @@ export function computeProposalFingerprint(
     baseRef: proposal.baseRef,
     headRef: proposal.headRef,
     evidence: proposal.evidence.map((e) => ({
-      path: e.path.replace(/\\/g, "/"),
+      path: toModelPath(e.path),
       startLine: e.startLine ?? null,
       endLine: e.endLine ?? null,
     })),

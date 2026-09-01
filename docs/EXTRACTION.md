@@ -108,6 +108,12 @@ New evidence types (`env-url-resolution`, `local-service-http`,
 `compose-depends-on`, `firestore-operation`) support existing relationship
 types. They are not a schema bump.
 
+## v1.3.1 (Cross-platform portability)
+
+Package `1.3.1`. Schema remains `1.0.0`. Same scanners, model, and generated
+artifacts as v1.3.0. Path containment, Git invocation, CLI resolution, and
+generated LF line endings are platform-correct on Windows and POSIX.
+
 ## v1.3.0 (Professional Technical Architecture Document Composer)
 
 Package `1.3.0`. Schema remains `1.0.0`. MaryForce (Consumer #1) stays at

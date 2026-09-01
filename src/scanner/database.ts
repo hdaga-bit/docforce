@@ -1,5 +1,6 @@
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { toModelPath, toRepositoryRelativePath } from "../path/canonical.js";
 import type { DocforceConfig } from "../config/types.js";
 import type { DatastoreInfo, Evidence, Provenance } from "../model/types.js";
 import { isExcluded } from "./exclusions.js";
@@ -136,7 +137,7 @@ function scanDirForImport(
     try {
       if (!existsSync(fullPath)) continue;
       const stat = statSync(fullPath);
-      const relPath = fullPath.slice(repoRoot.length + 1);
+      const relPath = toRepositoryRelativePath(repoRoot, fullPath) ?? toModelPath(fullPath.slice(repoRoot.length + 1));
 
       if (stat.isDirectory()) {
         if (isExcluded(relPath, analysisExclusions)) continue;

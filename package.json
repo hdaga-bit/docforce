@@ -1,6 +1,6 @@
 {
   "name": "@mary/docforce",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Standalone documentation analysis and PR assessment framework. Deterministic architecture facts; AI review is supplemental.",
   "type": "module",
   "license": "ISC",
@@ -25,10 +25,10 @@
     "docs"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && chmod +x dist/cli.js",
+    "build": "tsc -p tsconfig.build.json && node scripts/make-cli-executable.js",
     "prepack": "npm run build && node scripts/stamp-identity.js",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/scanner/scanner.test.ts src/scanner/relationships.test.ts src/scanner/v1-discovery.test.ts src/scanner/v12-discovery.test.ts src/view/view.test.ts src/model/model.test.ts src/config/config.test.ts src/validator/validator.test.ts src/generator/generator.test.ts src/generator/v13-composer.test.ts src/impact/impact.test.ts src/impact/impact-e2e.test.ts src/update/update-e2e.test.ts src/review/review.test.ts src/review/review-e2e.test.ts src/draft/draft.test.ts src/apply/apply.test.ts src/pr/pr.test.ts src/pr/pr-e2e.test.ts src/pack-install.e2e.test.ts",
+    "test": "tsx --test src/path/canonical.test.ts src/path/lineEnding.test.ts src/runtime/exec.test.ts src/update/validation.test.ts src/apply/write.test.ts src/scanner/scanner.test.ts src/scanner/relationships.test.ts src/scanner/v1-discovery.test.ts src/scanner/v12-discovery.test.ts src/view/view.test.ts src/model/model.test.ts src/config/config.test.ts src/validator/validator.test.ts src/generator/generator.test.ts src/generator/v13-composer.test.ts src/impact/impact.test.ts src/impact/impact-e2e.test.ts src/update/update-e2e.test.ts src/review/review.test.ts src/review/review-e2e.test.ts src/draft/draft.test.ts src/apply/apply.test.ts src/pr/pr.test.ts src/pr/pr-e2e.test.ts src/pack-install.e2e.test.ts",
     "docforce": "tsx src/cli.ts"
   },
   "engines": {

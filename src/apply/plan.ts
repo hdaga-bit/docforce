@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { isUnsafeDeclaredPath, toFilesystemPath, toModelPath } from "../path/canonical.js";
 import { loadConfig, resolveConfigPath } from "../config/index.js";
 import type { DocforceConfig } from "../config/types.js";
 import { scanWorkingTree } from "../impact/worktree.js";
@@ -60,7 +60,7 @@ export function buildApplicationPlan(
   validateEvidence(proposal, errors);
   validateTarget(proposal, config, repoRoot, errors);
 
-  const fullPath = join(repoRoot, proposal.targetPath.replace(/\\/g, "/"));
+  const fullPath = toFilesystemPath(repoRoot, proposal.targetPath);
   const fileExists = existsSync(fullPath);
   const target = findAiAssistedTarget(config, proposal.targetPath, proposal.sectionId);
   const originalFile = fileExists ? readFileSync(fullPath, "utf-8") : undefined;
@@ -147,8 +147,8 @@ export function buildApplicationPlan(
 
 function validateEvidence(proposal: StoredProposal, errors: string[]): void {
   for (const e of proposal.evidence) {
-    const path = e.path.replace(/\\/g, "/");
-    if (path.includes("..") || path.startsWith("/") || path.startsWith("~")) {
+    const path = toModelPath(e.path);
+    if (isUnsafeDeclaredPath(path) || path.split("/").includes("..")) {
       errors.push(`Evidence path "${e.path}" is unsafe`);
     }
     if (e.startLine && e.endLine && e.startLine > e.endLine) {
@@ -163,8 +163,8 @@ function validateTarget(
   repoRoot: string,
   errors: string[],
 ): void {
-  const path = proposal.targetPath.replace(/\\/g, "/");
-  if (path.includes("..") || path.startsWith("/") || path.startsWith("~")) {
+  const path = toModelPath(proposal.targetPath);
+  if (isUnsafeDeclaredPath(path) || path.split("/").includes("..")) {
     errors.push(`Target path "${path}" is unsafe`);
   }
   if (!isPathWithinAllowedRoots(repoRoot, path, config.documentation.allowedRoots)) {

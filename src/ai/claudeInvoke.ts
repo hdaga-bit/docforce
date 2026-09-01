@@ -15,8 +15,9 @@ export function resolveClaudeExecutable(configuredCommand?: string): string | un
     return existsSync(candidate) ? candidate : undefined;
   }
 
+  const probe = process.platform === "win32" ? "where.exe" : "which";
   try {
-    execFileSync("which", [candidate], { stdio: "pipe" });
+    execFileSync(probe, [candidate], { stdio: "pipe" });
     return candidate;
   } catch {
     return undefined;

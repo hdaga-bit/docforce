@@ -1,6 +1,7 @@
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
+import { removeTree } from "../path/fs.js";
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -183,6 +184,8 @@ describe("Ownership", () => {
   it("rejects path traversal outside allowed roots", () => {
     assert.equal(isPathWithinAllowedRoots("/tmp/repo", "../../etc/passwd", ["docs/"]), false);
     assert.equal(isPathWithinAllowedRoots("/tmp/repo", "docs/behavior.md", ["docs/"]), true);
+    assert.equal(isPathWithinAllowedRoots("/tmp/repo", "docs-evil/file.md", ["docs/"]), false);
+    assert.equal(isPathWithinAllowedRoots("/tmp/repo", "docs\\..\\outside.md", ["docs/"]), false);
   });
 });
 
@@ -454,7 +457,7 @@ function createFixtureRepo(): FixtureRepo {
     cleanup(): void {
       try {
         try { execSync("git worktree prune", { cwd: dir, stdio: "pipe" }); } catch { /* ignore */ }
-        rmSync(dir, { recursive: true, force: true });
+        removeTree(dir);
       } catch { /* ignore */ }
     },
   };

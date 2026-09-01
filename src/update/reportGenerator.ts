@@ -1,19 +1,17 @@
-import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { DocumentationUpdatePlan } from "./types.js";
+import { writeGeneratedFile } from "../path/fs.js";
 
 export function generateUpdateReports(
   plan: DocumentationUpdatePlan,
   repoRoot: string,
 ): { jsonPath: string; mdPath: string } {
   const reportsDir = join(repoRoot, ".docforce", "reports");
-  mkdirSync(reportsDir, { recursive: true });
-
   const jsonPath = join(reportsDir, "documentation-update.json");
   const mdPath = join(reportsDir, "documentation-update.md");
 
-  writeFileSync(jsonPath, JSON.stringify(plan, null, 2), "utf-8");
-  writeFileSync(mdPath, generateMarkdown(plan), "utf-8");
+  writeGeneratedFile(jsonPath, JSON.stringify(plan, null, 2));
+  writeGeneratedFile(mdPath, generateMarkdown(plan));
 
   return { jsonPath, mdPath };
 }

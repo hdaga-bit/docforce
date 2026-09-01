@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { canonicalizeNewlines, toGeneratedText } from "../path/lineEnding.js";
 import { existsSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
@@ -13,7 +14,7 @@ import type {
 } from "./types.js";
 
 function sha256(content: string): string {
-  return createHash("sha256").update(content, "utf-8").digest("hex");
+  return createHash("sha256").update(canonicalizeNewlines(content), "utf-8").digest("hex");
 }
 
 export interface ArtifactReader {
@@ -80,7 +81,7 @@ export function assessDeterministicDocs(params: {
       continue;
     }
 
-    const expected = def.generate(headModel, config);
+    const expected = toGeneratedText(def.generate(headModel, config));
     const actual = readArtifact(path);
 
     let status: DeterministicDocStatus;
