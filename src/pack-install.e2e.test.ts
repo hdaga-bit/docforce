@@ -39,8 +39,12 @@ describe("Packaged install into an isolated consumer", () => {
   it("installs from npm pack without a sibling ../docforce path", () => {
     assert.ok(!toModelPath(work).includes("/opt/maryforce"), "fixture must live outside the MaryForce tree");
 
-    const npmEnv = { ...process.env, npm_config_fund: "false" };
-    runNpm(["pack"], { cwd: packageRoot, env: npmEnv });
+    const npmEnv = {
+      ...process.env,
+      npm_config_fund: "false",
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1",
+    };
+    runNpm(["pack"], { cwd: packageRoot, env: npmEnv, timeout: 180_000 });
     tarball = join(packageRoot, `mary-docforce-${DOCFORCE_VERSION}.tgz`);
     assert.ok(existsSync(tarball));
 
@@ -70,7 +74,11 @@ analysis:
     mkdirSync(join(consumer, "src", "app"), { recursive: true });
     writeFileSync(join(consumer, "src", "app", "index.ts"), "export function hello() { return \"ok\"; }\n");
 
-    runNpm(["install", tarball], { cwd: consumer, env: { ...process.env, npm_config_fund: "false" } });
+    runNpm(["install", tarball], {
+      cwd: consumer,
+      timeout: 240_000,
+      env: { ...process.env, npm_config_fund: "false", PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1" },
+    });
     assert.ok(!existsSync(join(consumer, "..", "docforce", "package.json")));
     const installedRoot = join(consumer, "node_modules", "@mary", "docforce");
     assert.ok(existsSync(join(installedRoot, "package.json")));

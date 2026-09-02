@@ -4,3 +4,8 @@ identity.json
 *.tgz
 *.log
 .DS_Store
+
+# Publication binaries are build/release artifacts. Deterministic sources
+# remain under docs/generated/. Consumers may override this later.
+docs/published/
+.docforce/publication/

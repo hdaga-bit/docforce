@@ -176,4 +176,54 @@ documentation:
     assert.equal(config.output.docs.systemOverview, "docs/generated/system-overview.mmd");
     assert.equal(config.output.docs.apiInventory, "docs/generated/api-inventory.md");
   });
+
+  it("parses publication config and keeps professional defaults", () => {
+    const yml = `
+product:
+  name: PubApp
+  type: application
+  description: Publication config fixture
+publication:
+  organization:
+    name: Example Organization
+    logo: docs/assets/logo.png
+  document:
+    title: Technical Architecture & Design Document
+    classification: Internal
+    status: Current
+  theme:
+    primaryColor: "#112233"
+    accentColor: "#445566"
+    pageSize: Letter
+  footer:
+    text: Example Organization
+`;
+    writeFileSync(join(tmpDir, "docforce.yml"), yml);
+    const config = loadConfig(join(tmpDir, "docforce.yml"));
+    assert.equal(config.publication?.organization.name, "Example Organization");
+    assert.equal(config.publication?.organization.logo, "docs/assets/logo.png");
+    assert.equal(config.publication?.document.classification, "Internal");
+    assert.equal(config.publication?.theme.primaryColor, "#112233");
+    assert.equal(config.publication?.theme.pageSize, "Letter");
+    assert.equal(config.publication?.theme.footerText, "Example Organization");
+    assert.equal(config.publication?.theme.bodyFont, "Calibri");
+    assert.equal(config.publication?.includeOperationalProvenance, false);
+    assert.equal(config.publication?.outputDir, "docs/published");
+  });
+
+  it("uses neutral publication defaults when the block is omitted", () => {
+    const yml = `
+product:
+  name: BareApp
+  type: application
+  description: No publication block
+`;
+    writeFileSync(join(tmpDir, "docforce.yml"), yml);
+    const config = loadConfig(join(tmpDir, "docforce.yml"));
+    assert.equal(config.publication?.organization.name, "");
+    assert.equal(config.publication?.document.title, "Technical Architecture & Design Document");
+    assert.equal(config.publication?.theme.primaryColor, "#1B365D");
+    assert.ok(!/mary/i.test(config.publication?.organization.name ?? ""));
+    assert.ok(!/mary/i.test(config.publication?.theme.footerText ?? ""));
+  });
 });

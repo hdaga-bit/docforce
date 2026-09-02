@@ -2,6 +2,12 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { DocforceConfig, DocforcePrConfig, PrStatusOutcome, ComponentPresentation, TechnologyPresentation } from "./types.js";
 import { DEFAULT_DOCS_OUTPUT, PR_STATUS_OUTCOMES } from "./types.js";
+import {
+  DEFAULT_PUBLICATION_CONFIG,
+  mergePublicationTheme,
+  type DocforcePublicationConfig,
+} from "../publication/config.js";
+import { parseMarginMm, parsePageSize } from "../publication/theme.js";
 function parseYamlLite(text: string): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   const lines = text.split("\n");
@@ -309,8 +315,9 @@ export function loadConfig(configPath: string): DocforceConfig {
   };
 
   const pr = parsePrConfig(parsed);
+  const publication = parsePublicationConfig(parsed);
 
-  return { schemaVersion, product, scanning, analysis, architecture, output, documentation, ai, pr };
+  return { schemaVersion, product, scanning, analysis, architecture, output, documentation, ai, pr, publication };
 }
 
 export function resolveConfigPath(repoRoot: string, configFile?: string): string {
@@ -374,3 +381,37 @@ function parseComponentOverrides(
 }
 
 export { type DocforceConfig, type DocforcePrConfig, type PrStatusOutcome } from "./types.js";
+
+function parsePublicationConfig(parsed: Record<string, unknown>): DocforcePublicationConfig {
+  const raw = parsed["publication"];
+  if (!raw || typeof raw !== "object") return DEFAULT_PUBLICATION_CONFIG;
+  const pub = raw as Record<string, unknown>;
+  const footerText = getString(pub, "footer", "text");
+  const theme = mergePublicationTheme({
+    primaryColor: getString(pub, "theme", "primaryColor") || undefined,
+    accentColor: getString(pub, "theme", "accentColor") || undefined,
+    headingColor: getString(pub, "theme", "headingColor") || undefined,
+    bodyFont: getString(pub, "theme", "bodyFont") || undefined,
+    headingFont: getString(pub, "theme", "headingFont") || undefined,
+    pageSize: parsePageSize(getString(pub, "theme", "pageSize") || undefined),
+    marginMm: parseMarginMm(getString(pub, "theme", "marginMm") || undefined),
+    headerText: getString(pub, "theme", "headerText") || undefined,
+    footerText: footerText || getString(pub, "theme", "footerText") || undefined,
+    tableHeaderFill: getString(pub, "theme", "tableHeaderFill") || undefined,
+  });
+  return {
+    organization: {
+      name: getString(pub, "organization", "name"),
+      logo: getString(pub, "organization", "logo") || undefined,
+    },
+    document: {
+      title: getString(pub, "document", "title") || DEFAULT_PUBLICATION_CONFIG.document.title,
+      classification: getString(pub, "document", "classification"),
+      status: getString(pub, "document", "status"),
+    },
+    theme,
+    footer: { text: footerText },
+    includeOperationalProvenance: getBool(pub, false, "includeOperationalProvenance"),
+    outputDir: getString(pub, "outputDir") || DEFAULT_PUBLICATION_CONFIG.outputDir,
+  };
+}

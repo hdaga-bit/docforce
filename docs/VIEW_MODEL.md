@@ -1,6 +1,6 @@
 # Documentation View Model (DocForce v1.3)
 
-Package version `1.3.1`. System Model schema remains `1.0.0`.
+Package version `1.4.0`. System Model schema remains `1.0.0`.
 
 v1.3 composes a professional flagship Technical Architecture document from the
 validated System Model and Documentation View Model. It does not expand
@@ -10,6 +10,7 @@ evidence, and provenance hygiene are in scope.
 ```
 Repository → System Model → Documentation View Model → modular artifacts
            → technical-architecture.md (flagship)
+           → Publication Model → DOCX / PDF (v1.4, downstream)
 ```
 
 The System Model stays evidence-rich and exhaustive. v1.3 composition does
@@ -219,3 +220,9 @@ The Technical Overview includes **Documentation Coverage & Unknowns** with statu
 - unavailable from repository evidence
 
 Wording is based on scanner coverage and unknowns. No percentages. Architecture rationale is out of scope and is not generated.
+
+## Publication (v1.4)
+
+The flagship Markdown remains the deterministic text source. `docforce publish`
+builds a shared Publication Model from the same view and renders DOCX/PDF.
+See `docs/PUBLICATION.md`.

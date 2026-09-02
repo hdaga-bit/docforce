@@ -1,3 +1,5 @@
+import type { DocforcePublicationConfig } from "../publication/config.js";
+
 export interface DocforceProductConfig {
   readonly name: string;
   readonly type: string;
@@ -148,4 +150,6 @@ export interface DocforceConfig {
   readonly documentation: DocforceDocumentationConfig;
   readonly ai: DocforceAiConfig;
   readonly pr: DocforcePrConfig;
+  /** Downstream publication styling. Not part of the System Model. */
+  readonly publication?: DocforcePublicationConfig;
 }

@@ -108,6 +108,18 @@ New evidence types (`env-url-resolution`, `local-service-http`,
 `compose-depends-on`, `firestore-operation`) support existing relationship
 types. They are not a schema bump.
 
+## v1.4.0 (Professional DOCX/PDF publication)
+
+Package `1.4.0`. Schema remains `1.0.0`. No new scanners. Publication is
+downstream of the v1.3 Documentation View Model.
+
+Outputs: `docs/published/<Product>-Technical-Architecture.docx` and `.pdf`.
+Generated Markdown under `docs/generated/**` stays the living source.
+`docs/published/**` is gitignored by default.
+
+Requires Playwright Chromium (`npx playwright install chromium`). Does not
+require an AI provider.
+
 ## v1.3.1 (Cross-platform portability)
 
 Package `1.3.1`. Schema remains `1.0.0`. Same scanners, model, and generated

@@ -162,3 +162,26 @@ export {
   resolveNodeCommand,
   resolveInstalledCliEntry,
 } from "./runtime/exec.js";
+
+// Professional publication (v1.4) — downstream of generated architecture
+export {
+  runPublication,
+  formatPublicationReport,
+  buildPublicationDocument,
+  diagnosePublicationRenderer,
+  collectPublicationText,
+  PUBLICATION_REGISTRY,
+  DEFAULT_PUBLICATION_THEME,
+  DEFAULT_PUBLICATION_CONFIG,
+  mergePublicationTheme,
+  publicationFileStem,
+  CHROMIUM_INSTALL_HINT,
+} from "./publication/index.js";
+export type {
+  PublicationFormat,
+  PublicationResult,
+  PublicationOptions,
+  PublicationDocument,
+  PublicationTheme,
+  DocforcePublicationConfig,
+} from "./publication/index.js";

@@ -24,9 +24,59 @@ import { resolveGithubPrContext } from "./pr/github/context.js";
 import { resolvePullRequestReporter, type PrReporterKind } from "./pr/github/resolveReporter.js";
 import { renderPrSummary } from "./pr/summary.js";
 import { formatPackageIdentity } from "./version.js";
+import {
+  diagnosePublicationRenderer,
+  formatPublicationReport,
+  runPublication,
+  type PublicationFormat,
+} from "./publication/index.js";
 
-const COMMANDS = ["analyze", "generate", "run", "impact", "update", "review", "draft", "apply-proposal", "pr-check"] as const;
+const COMMANDS = ["analyze", "generate", "run", "impact", "update", "review", "draft", "apply-proposal", "pr-check", "publish"] as const;
 type Command = (typeof COMMANDS)[number];
+
+async function runPublish(args: string[]): Promise<void> {
+  let repoRoot = resolve(".");
+  let format: PublicationFormat = "all";
+  let outputDir: string | undefined;
+  let checkRenderer = false;
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (arg === "--repo" && args[i + 1]) {
+      repoRoot = resolve(args[++i]!);
+    } else if (arg === "--format" && args[i + 1]) {
+      const value = args[++i]!;
+      if (value !== "docx" && value !== "pdf" && value !== "all") {
+        throw new Error(`Unknown --format "${value}". Use docx, pdf, or all.`);
+      }
+      format = value;
+    } else if (arg === "--output-dir" && args[i + 1]) {
+      outputDir = args[++i]!;
+    } else if (arg === "--check-renderer") {
+      checkRenderer = true;
+    } else if (arg === "--help" || arg === "-h") {
+      console.log("Usage: docforce publish [--format docx|pdf|all] [--output-dir <path>] [--repo <path>] [--check-renderer]");
+      return;
+    }
+  }
+
+  console.log(formatPackageIdentity());
+  if (checkRenderer) {
+    const diag = await diagnosePublicationRenderer();
+    if (!diag.ok) {
+      console.error(diag.error);
+      process.exit(1);
+    }
+    console.log("Publication renderer: Playwright Chromium is available.");
+    if (args.includes("--check-renderer") && !args.includes("--format") && outputDir === undefined) {
+      return;
+    }
+  }
+
+  const result = await runPublication({ repoRoot, format, outputDir, checkRenderer: false });
+  console.log("");
+  console.log(formatPublicationReport(result));
+}
 
 function main(): void {
   const args = process.argv.slice(2);
@@ -65,6 +115,14 @@ function main(): void {
 
   if (command === "pr-check") {
     runPrCheck(args.slice(1));
+    return;
+  }
+
+  if (command === "publish") {
+    void runPublish(args.slice(1)).catch((err) => {
+      console.error(err instanceof Error ? err.message : err);
+      process.exit(1);
+    });
     return;
   }
 
