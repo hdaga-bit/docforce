@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
  * revision are not part of a consumer repository's product model fingerprint.
  */
 export const DOCFORCE_PACKAGE_NAME = "@mary/docforce";
-export const DOCFORCE_VERSION = "1.4.0";
+export const DOCFORCE_VERSION = "1.4.1";
 export const MODEL_SCHEMA_VERSION = "1.0.0";
 
 export interface DocforcePackageIdentity {

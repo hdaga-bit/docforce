@@ -185,3 +185,24 @@ export type {
   PublicationTheme,
   DocforcePublicationConfig,
 } from "./publication/index.js";
+
+export {
+  inferRepository,
+  runInit,
+  runDoctor,
+  runTry,
+  runOnboarded,
+  formatTryReport,
+  formatDoctorReport,
+  formatRunReport,
+  TRIAL_DIR,
+  SAFE_EXCLUDES,
+} from "./onboard/index.js";
+export type {
+  InferOptions,
+  InitResult,
+  DoctorResult,
+  TryResult,
+  RunPipelineResult,
+  RepositorySummary,
+} from "./onboard/index.js";

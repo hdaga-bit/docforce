@@ -9,3 +9,5 @@ identity.json
 # remain under docs/generated/. Consumers may override this later.
 docs/published/
 .docforce/publication/
+.docforce/trial/
+DocForce-Beta-*/

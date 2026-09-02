@@ -1,6 +1,6 @@
 # DocForce
 
-Standalone documentation analysis framework. Version **1.4.0**.
+Standalone documentation analysis framework. Version **1.4.1**.
 
 DocForce reads a consumer repository as filesystem and Git **data**. It builds a
 deterministic architecture model, regenerates owned documentation, optionally
@@ -36,11 +36,11 @@ v1.0 is **private**. It is not published to a public registry.
 
 See `INSTALL.md` for the consumer contract.
 
-v1.4.0 is consumed as a **packed tarball** (or, later, a private Git tag/SHA).
+v1.4.1 is consumed as a **packed tarball** (or, later, a private Git tag/SHA).
 A sibling `file:../docforce` path is not required.
 
 ```bash
-npm install ./vendor/docforce/mary-docforce-1.4.0.tgz
+npm install ./vendor/docforce/mary-docforce-1.4.1.tgz
 ```
 
 A git URL is acceptable once this repository has a remote. This tree currently
@@ -59,6 +59,10 @@ docforce draft -- --base origin/main
 docforce apply-proposal -- --proposal <id>
 docforce pr-check -- --base origin/main --no-publish
 docforce publish --format all
+docforce try
+docforce init
+docforce doctor
+docforce run
 ```
 
 Consumers may keep npm wrappers (`npm run docforce:update`) that call this CLI.
@@ -105,6 +109,7 @@ Optional consumer blocks: `architecture.components`, `documentation.aiAssisted`,
 `documentation.allowedRoots`, `ai.claude.command`, `pr`, `publication`.
 
 See `docs/PUBLICATION.md` for DOCX/PDF theme, Chromium, and git policy.
+See `docs/ONBOARDING.md` and `docs/beta/QUICKSTART.md` for first-time trial use.
 
 ## Commands
 
@@ -119,6 +124,10 @@ See `docs/PUBLICATION.md` for DOCX/PDF theme, Chromium, and git policy.
 | `apply-proposal` | Only with `--apply` | Human-approved section apply |
 | `pr-check` | No | Report only; `--no-publish` is local |
 | `publish` | Yes (`docs/published/*.docx` / `*.pdf`) | Downstream of generated architecture; no AI |
+| `try` | No (`.docforce/trial/**` only) | Evaluate without onboarding |
+| `init` | Writes starter `docforce.yml` | Does not scan-invent architecture |
+| `doctor` | No | READY / WARNING / ERROR |
+| `run` | Yes (generated + published) | doctor → analyze → generate → publish |
 
 `.docforce/` is generated state. It is not product source.
 
@@ -199,7 +208,7 @@ See `docs/COMPONENT_BOUNDARIES.md`, `docs/MODEL_SCHEMA_1.0.md`, and `docs/VIEW_M
 | Field | Value |
 |-------|--------|
 | Name | `@mary/docforce` |
-| Version | `1.4.0` |
+| Version | `1.4.1` |
 | Publish | private / local `file:` or git dependency |
 | Model schema | `1.0.0` (fingerprint-relevant; independent of package version) |
 

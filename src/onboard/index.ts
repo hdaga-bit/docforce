@@ -1,0 +1,14 @@
+export { inferRepository, trialConfig, suggestProductName, SAFE_EXCLUDES, TRIAL_DIR } from "./infer.js";
+export { runInit, formatInitReport } from "./init.js";
+export { runDoctor, formatDoctorReport } from "./doctor.js";
+export { runTry, formatTryReport } from "./try.js";
+export { runOnboarded, formatRunReport } from "./run.js";
+export { renderFeedbackTemplate } from "./feedback.js";
+export { buildRepositorySummary, formatRepositorySummary } from "./summary.js";
+export { RUN_WRITE_ROOTS, TRIAL_WRITE_ROOT } from "./paths.js";
+export type { InferOptions, InferredRepository } from "./infer.js";
+export type { InitOptions, InitResult } from "./init.js";
+export type { DoctorResult, DoctorCheck, DoctorStatus, DoctorOptions } from "./doctor.js";
+export type { TryOptions, TryResult } from "./try.js";
+export type { RunPipelineOptions, RunPipelineResult } from "./run.js";
+export type { RepositorySummary } from "./summary.js";

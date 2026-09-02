@@ -108,6 +108,13 @@ New evidence types (`env-url-resolution`, `local-service-http`,
 `compose-depends-on`, `firestore-operation`) support existing relationship
 types. They are not a schema bump.
 
+## v1.4.1 (Beta onboarding)
+
+Package `1.4.1`. Schema remains `1.0.0`. No new scanners or publication
+formats. Adds `docforce try`, `init`, `doctor`, and a `run` pipeline
+(doctor → analyze → generate → publish). Trial artifacts stay under
+`.docforce/trial/`. See `docs/ONBOARDING.md` and `docs/beta/QUICKSTART.md`.
+
 ## v1.4.0 (Professional DOCX/PDF publication)
 
 Package `1.4.0`. Schema remains `1.0.0`. No new scanners. Publication is

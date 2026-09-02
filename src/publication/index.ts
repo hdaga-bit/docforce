@@ -1,6 +1,7 @@
 import { mkdirSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { loadConfig, resolveConfigPath } from "../config/index.js";
+import type { DocforceConfig } from "../config/types.js";
 import { runAllScanners } from "../scanner/index.js";
 import { buildSystemModel } from "../model/builder.js";
 import { validateSystemModel } from "../validator/index.js";
@@ -23,6 +24,7 @@ export interface PublicationOptions {
   readonly format: PublicationFormat;
   readonly outputDir?: string;
   readonly checkRenderer?: boolean;
+  readonly config?: DocforceConfig;
 }
 
 export interface PublicationResult {
@@ -45,7 +47,7 @@ export async function runPublication(options: PublicationOptions): Promise<Publi
   }
 
   const configPath = resolveConfigPath(repoRoot);
-  const config = loadConfig(configPath);
+  const config = options.config ?? loadConfig(configPath);
   const publication = resolvePublicationConfig(config.publication);
   const outputDirRel = options.outputDir ?? publication.outputDir;
   validateOutputDir(repoRoot, outputDirRel);

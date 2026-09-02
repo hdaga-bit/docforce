@@ -30,8 +30,18 @@ import {
   runPublication,
   type PublicationFormat,
 } from "./publication/index.js";
+import {
+  formatDoctorReport,
+  formatInitReport,
+  formatRunReport,
+  formatTryReport,
+  runDoctor,
+  runInit,
+  runOnboarded,
+  runTry,
+} from "./onboard/index.js";
 
-const COMMANDS = ["analyze", "generate", "run", "impact", "update", "review", "draft", "apply-proposal", "pr-check", "publish"] as const;
+const COMMANDS = ["analyze", "generate", "run", "impact", "update", "review", "draft", "apply-proposal", "pr-check", "publish", "init", "doctor", "try"] as const;
 type Command = (typeof COMMANDS)[number];
 
 async function runPublish(args: string[]): Promise<void> {
@@ -76,6 +86,85 @@ async function runPublish(args: string[]): Promise<void> {
   const result = await runPublication({ repoRoot, format, outputDir, checkRenderer: false });
   console.log("");
   console.log(formatPublicationReport(result));
+}
+
+function parseOnboardArgs(args: string[]): {
+  repoRoot: string;
+  yes: boolean;
+  force: boolean;
+  noPublish: boolean;
+  name?: string;
+  type?: string;
+  organization?: string;
+} {
+  let repoRoot = resolve(".");
+  let yes = false;
+  let force = false;
+  let noPublish = false;
+  let name: string | undefined;
+  let type: string | undefined;
+  let organization: string | undefined;
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (arg === "--repo" && args[i + 1]) repoRoot = resolve(args[++i]!);
+    else if (arg === "--name" && args[i + 1]) name = args[++i]!;
+    else if (arg === "--type" && args[i + 1]) type = args[++i]!;
+    else if (arg === "--organization" && args[i + 1]) organization = args[++i]!;
+    else if (arg === "--yes" || arg === "-y") yes = true;
+    else if (arg === "--force") force = true;
+    else if (arg === "--no-publish") noPublish = true;
+    else if (!arg.startsWith("-") && args[0] === arg && i === 0) repoRoot = resolve(arg);
+  }
+  return { repoRoot, yes, force, noPublish, name, type, organization };
+}
+
+function runInitCli(args: string[]): void {
+  const opts = parseOnboardArgs(args);
+  console.log(formatPackageIdentity());
+  const result = runInit({
+    repoRoot: opts.repoRoot,
+    yes: opts.yes,
+    force: opts.force,
+    name: opts.name,
+    type: opts.type,
+    organization: opts.organization,
+  });
+  console.log("");
+  console.log(formatInitReport(result));
+  if (!result.wrote) process.exit(1);
+}
+
+async function runDoctorCli(args: string[]): Promise<void> {
+  const opts = parseOnboardArgs(args);
+  console.log(formatPackageIdentity());
+  console.log("");
+  const result = await runDoctor({ repoRoot: opts.repoRoot, requireConfig: true });
+  console.log(formatDoctorReport(result));
+  if (result.status === "ERROR") process.exit(1);
+}
+
+async function runTryCli(args: string[]): Promise<void> {
+  const opts = parseOnboardArgs(args);
+  console.log(formatPackageIdentity());
+  console.log("");
+  const result = await runTry({
+    repoRoot: opts.repoRoot,
+    name: opts.name,
+    type: opts.type,
+    organization: opts.organization,
+  });
+  console.log(formatTryReport(result));
+}
+
+async function runRunCli(args: string[]): Promise<void> {
+  const opts = parseOnboardArgs(args);
+  console.log(formatPackageIdentity());
+  console.log("");
+  const result = await runOnboarded({
+    repoRoot: opts.repoRoot,
+    noPublish: opts.noPublish,
+  });
+  console.log(formatRunReport(result));
 }
 
 function main(): void {
@@ -126,6 +215,35 @@ function main(): void {
     return;
   }
 
+  if (command === "init") {
+    runInitCli(args.slice(1));
+    return;
+  }
+
+  if (command === "doctor") {
+    void runDoctorCli(args.slice(1)).catch((err) => {
+      console.error(err instanceof Error ? err.message : err);
+      process.exit(1);
+    });
+    return;
+  }
+
+  if (command === "try") {
+    void runTryCli(args.slice(1)).catch((err) => {
+      console.error(err instanceof Error ? err.message : err);
+      process.exit(1);
+    });
+    return;
+  }
+
+  if (command === "run") {
+    void runRunCli(args.slice(1)).catch((err) => {
+      console.error(err instanceof Error ? err.message : err);
+      process.exit(1);
+    });
+    return;
+  }
+
   const repoRoot = resolve(args[1] ?? ".");
   const configPath = resolveConfigPath(repoRoot);
 
@@ -136,7 +254,7 @@ function main(): void {
 
   const config = loadConfig(configPath);
 
-  if (command === "analyze" || command === "run") {
+  if (command === "analyze") {
     console.log("Scanning repository...");
     if (config.analysis.exclude.length > 0) {
       console.log(`  Analysis exclusions: ${config.analysis.exclude.join(", ")}`);
@@ -199,51 +317,29 @@ function main(): void {
     writeFileSync(modelPath, JSON.stringify(model, null, 2), "utf-8");
     console.log(`System model: ${config.output.systemModel}`);
 
-    if (command === "analyze") {
-      console.log("");
-      console.log("Analysis complete. Run 'docforce generate' to produce documentation.");
-      return;
-    }
+    console.log("");
+    console.log("Analysis complete. Run 'docforce generate' to produce documentation.");
+    return;
   }
 
-  if (command === "generate" || command === "run") {
-    if (command === "generate") {
-      console.log("Scanning repository...");
-      const scanResults = runAllScanners(repoRoot, config);
-      const model = buildSystemModel(repoRoot, configPath, config, scanResults);
-      const validation = validateSystemModel(model);
+  if (command === "generate") {
+    console.log("Scanning repository...");
+    const scanResults = runAllScanners(repoRoot, config);
+    const model = buildSystemModel(repoRoot, configPath, config, scanResults);
+    const validation = validateSystemModel(model);
 
-      if (!validation.valid) {
-        console.error("Validation FAILED — cannot generate documentation from invalid model.");
-        for (const err of validation.errors) {
-          console.error(`  ERROR: ${err.path} — ${err.message}`);
-        }
-        process.exit(1);
+    if (!validation.valid) {
+      console.error("Validation FAILED — cannot generate documentation from invalid model.");
+      for (const err of validation.errors) {
+        console.error(`  ERROR: ${err.path} — ${err.message}`);
       }
+      process.exit(1);
+    }
 
-      console.log("Generating documentation...");
-      const result = generateAllDocs(repoRoot, config, model);
-      for (const file of result.files) {
-        console.log(`  ${file.path} (${file.bytes} bytes)`);
-      }
-    } else {
-      console.log("Generating documentation...");
-      const scanResults = runAllScanners(repoRoot, config);
-      const model = buildSystemModel(repoRoot, configPath, config, scanResults);
-
-      const validation = validateSystemModel(model);
-      if (!validation.valid) {
-        console.error("Validation FAILED — cannot generate documentation from invalid model.");
-        for (const err of validation.errors) {
-          console.error(`  ERROR: ${err.path} — ${err.message}`);
-        }
-        process.exit(1);
-      }
-
-      const result = generateAllDocs(repoRoot, config, model);
-      for (const file of result.files) {
-        console.log(`  ${file.path} (${file.bytes} bytes)`);
-      }
+    console.log("Generating documentation...");
+    const result = generateAllDocs(repoRoot, config, model);
+    for (const file of result.files) {
+      console.log(`  ${file.path} (${file.bytes} bytes)`);
     }
 
     console.log("");

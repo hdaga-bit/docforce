@@ -1,10 +1,10 @@
 # System Model schema 1.0.0
 
-Package version `1.4.0` and System Model schema version `1.0.0` are independent numbers.
+Package version `1.4.1` and System Model schema version `1.0.0` are independent numbers.
 
 | Version | What it means |
 |---------|----------------|
-| `@mary/docforce` 1.4.0 | Tool / npm package (Professional Technical Architecture publication) |
+| `@mary/docforce` 1.4.1 | Tool / npm package (publication + beta onboarding) |
 | `metadata.schemaVersion` 1.0.0 | Public `SystemModel` shape (unchanged from v1.0 / v1.1 / v1.2) |
 
 v1.2 adds relationship *instances* under existing types (`calls-api` to

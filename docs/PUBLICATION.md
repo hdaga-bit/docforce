@@ -1,6 +1,6 @@
 # Professional publication (DocForce v1.4)
 
-Package version `1.4.0`. System Model schema remains `1.0.0`.
+Package version `1.4.1`. System Model schema remains `1.0.0`.
 
 Publication is downstream of the v1.3 Documentation View Model. It does not
 add scanners, rewrite the System Model, or invent architecture rationale.
@@ -62,6 +62,9 @@ Works on Windows development machines and Linux/VPS CI. If Chromium is
 missing, publication fails with that install hint.
 
 `docforce publish --check-renderer` diagnoses the browser without publishing.
+
+`docforce try` and `docforce run` skip DOCX/PDF when Chromium is missing
+instead of failing analysis. They print the install hint above.
 
 ## Word table of contents
 
